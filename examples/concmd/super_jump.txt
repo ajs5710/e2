@@ -1,0 +1,27 @@
+@name 
+@inputs 
+@outputs 
+@persist Jumping
+@trigger 
+
+interval(50)
+
+if (first()){
+    Jumping = 0
+}
+
+if (clk("on")){
+    concmd("noclip")
+    timer("off", 200)
+}elseif (clk("off")) {
+    concmd("noclip")
+}else{
+    if (owner():keyJump()){
+        if (Jumping == 0){
+            timer("on", 10)
+            Jumping = 1
+        }
+    }else{
+        Jumping = 0
+    }
+}
