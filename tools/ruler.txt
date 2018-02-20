@@ -30,7 +30,7 @@ if (first()){
 
 
 
-if (Owner:keyPressed("k")){
+if (Owner:keyPressed("i")){
     if (FirstSet == 0){
         FirstSet = 1
         V1 = Owner:aimPos()

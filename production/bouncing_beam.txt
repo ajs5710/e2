@@ -1,6 +1,6 @@
 @name 
 @inputs 
-@outputs I
+@outputs I HitPlayer
 @persist MaxLength Color:vector TotalLength PreviousI Status:string StatusDone
 @persist DesiredVector:vector Origin:vector RemainingLength I
 @trigger 
@@ -8,7 +8,7 @@
 if (first()){
     runOnTick(1000)    
     
-    TotalLength = 50000
+    TotalLength = 1500
     MaxLength = 500 #the maximum length a holo can be #admin only command wire_holograms_size_max controls this
     Color = randvec(vec(0,0,0), vec(255,255,255))
     
@@ -60,7 +60,9 @@ if (first()){
             
             if (RangerData:entity():isPlayer()){
                 RemainingLength = 0
+                HitPlayer = 1
             }else{
+                HitPlayer = 0
                 RemainingLength -= Length
             }
         }
