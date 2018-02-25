@@ -1,9 +1,9 @@
-@name 
+@name holo dup
 @inputs 
 @outputs Status:string SaveNames:array Name:string LastI Scale
-@persist SaveNames:array Saves:array Status:string Name:string
-@persist LastI Buffer:string FileName:string
-@persist Constrained:array CurBuild:string Scale Orient UseProps SpamDelay SpamDelayed
+@persist SaveNames:array Saves:array Status:string Name:string Func:array
+@persist LastI Buffer:string FileName:string ExportFileName:string
+@persist Constrained:array CurBuild:string Scale Orient UseProps SpamDelay SpamDelayed AsFunc
 @trigger 
 
 runOnFile(1)
@@ -20,6 +20,10 @@ if (first()){
     #!saveas name #note that the chip must be reloaded afterwards (could fix but too lazy)
     #!load name
     #!loadprops name #this loads the save using props instead of holos ignores final orientation and scaling
+    
+    #One extra command was added:
+    #!exportfunction name #builds an e2 into the ExportFileName file (in the data/e2files folder)
+    ExportFileName = "sampleOutput.txt"
     
     #And Several auxilliary commands
     #!hide #hide and show toggle the alpha of the chip 
@@ -77,6 +81,7 @@ if (first()){
         UseProps = 0
         SpamDelay = 0
         SpamDelayed = 0
+        LastI = 1
         
         for(I = LastI, Constrained:count()){
             if (minquota() < 500){ #madness
@@ -256,6 +261,92 @@ if (first()){
         }
     }
     
+    function string number:exportString(){
+        local String = This:toString()
+        
+        if (String:find("e")){
+            local StringParts = String:explode("e")
+            
+            local Zeros = StringParts[2, string]:toNumber()
+            local Number = StringParts[1, string]:explode("."):concat("")            
+            
+            if (sign(Zeros) > 0){
+                return Number + "0":repeat(abs(Zeros))
+            }else{
+                local Num = Number:toNumber()                
+                local Number = abs(Num):toString()
+
+                return ((sign(Num) < 0) ? "-" : "") + "0." + "0":repeat(abs(Zeros) - 1) + Number
+            }
+        }
+        
+        return String
+    }
+    
+    function string vector:exportString(){
+        return "vec(" + This:x():exportString() + "," + This:y():exportString() + "," + This:z():exportString() + ")"
+    }
+    
+    function string string:exportString(){
+        return "\"" + This + "\""
+    }
+    
+    function string angle:exportString(){
+        return "ang(" + This:pitch():exportString() + "," + This:yaw():exportString() + "," + This:roll():exportString() +  ")"
+    }
+    
+    function generateFuncFromCurBuild(){
+        
+        local LineArray = CurBuild:explode("\n")
+        I = LastI
+        local OrigAngles = LineArray[I - 6, string]:toAngle()
+        
+        while(I < LineArray:count()){
+            if (minquota() < 500 || !holoCanCreate()){ #madness
+                LastI = I
+                Status = "building"
+                break
+            }else{
+                LastI = 1
+                Status = ""
+            }
+            I += 6
+            if (LineArray[I - 1, string] != ""){
+                local HoloIndex = I/6
+                local CurModel = LineArray[I - 5, string]:trim()
+                local CurPos = LineArray[I - 4, string]:toVector()
+                local CurAngs = LineArray[I - 3, string]:toAngle()
+                local CurMat = LineArray[I - 2, string]:trim()
+                local CurColor = LineArray[I - 1, string]:toVector()
+                
+                Func:pushString("    holo(" + 
+                    CurPos:exportString() + "," +
+                    CurAngs:exportString() + "," + 
+                    CurColor:exportString() + "," + 
+                    CurModel:exportString() + "," + 
+                    CurMat:exportString() + "," + 
+                    "255, HoloMaster)"
+                )
+            }
+        }
+        if (Status == ""){
+            Func:pushString("}") #close the if (first)
+            Func:pushString("")
+            Func:pushString("if(Index<=HoloMaster:count()){")
+            Func:pushString("    loadHolo(StartingHoloIndex, ScaleFactor, StartingPosition, HoloMaster, Index)")
+            Func:pushString("    Index = Index + 1")
+            Func:pushString("    interval(10)")
+            Func:pushString("}else{")
+            Func:pushString("    hint(\"" + Name + " loaded\", 5)")
+            Func:pushString("    holoParent(0, entity())")
+            Func:pushString("}")
+            
+            FuncOutput = Func:concat("\n")
+            fileWrite(ExportFileName, FuncOutput)
+            hint("Export Complete", 5)
+        }
+    }
+    
     function generatePropsFromCurBuild(){
         local LineArray = CurBuild:explode("\n")
         I = LastI
@@ -304,9 +395,11 @@ if (first()){
         }elseif(Lower:find("!loadprops") == 1){
             findFromName(Command:sub(11):trim())
             UseProps = 1
+            AsFunc = 0
         }elseif(Lower:find("!load") == 1){
             findFromName(Command:sub(6):trim())
             UseProps = 0
+            AsFunc = 0
         }elseif(Lower:find("!hide") == 1){
             entity():setAlpha(0)
             hint("Chip hidden", 5)
@@ -325,6 +418,10 @@ if (first()){
         }elseif(Lower:find("!spamdelay") == 1){
             SpamDelay = Command:sub(11):trim():toNumber()
             hint("Anti prop-spam delay set to " + SpamDelay/1000.0 + " seconds", 5)
+        }elseif(Lower:find("!exportfunction") == 1){
+            findFromName(Command:sub(16):trim())
+            UseProps = 0
+            AsFunc = 1
         }
     }
     
@@ -370,9 +467,53 @@ if (first()){
     }elseif(Status == "build"){
         holoDeleteAll()
         Status = "building"
+        if (AsFunc){        
+            Func = array(
+                "@name holo " + Name,
+                "@persist [HoloMaster]:table [Index,HoloTotal]:number",
+                "@persist StartingHoloIndex ScaleFactor StartingPosition:vector",
+                "",
+                "if(first()|dupefinished()){",
+                "",
+                "    StartingHoloIndex = 0",
+                "    ScaleFactor = 1",
+                "    StartingPosition = entity():pos()",
+                "",
+                "    HoloMaster:clear() # Initiates table",
+                "",                        
+                "    function void holo(Position:vector,Angle:angle,Color:vector,Model:string,Material:string,Alpha,Table:table){",
+                "        Table:pushArray(array(Position,Angle,Color,Model,Material,Alpha))",
+                "    }",   
+                "",
+                "    #all holos will be parented to the StartingHoloIndex so adjustments to position and angle can be made via that holo",
+                "    function void loadHolo(StartingHoloIndex, ScaleFactor, StartingPosition:vector, Table:table, Index:number){",
+                "        local Position = Table[Index,array][1,vector]*ScaleFactor + StartingPosition",
+                "        local Angle = Table[Index,array][2,angle]",
+                "        local Color = Table[Index,array][3,vector]",
+                "        local Model = Table[Index,array][4,string]",
+                "        local Material = Table[Index,array][5,string]",
+                "        local Alpha = Table[Index, array][6,number]",
+                "",        
+                "        local I = Index + StartingHoloIndex",
+                "",        
+                "        holoCreate(I)",
+                "        holoPos(I, Position)",
+                "        holoAng(I, Angle)",
+                "        holoColor(I, Color)",
+                "        holoModel(I, Model)",
+                "        holoMaterial(I, Material)",
+                "        holoAlpha(I, Alpha)",
+                "        holoScaleUnits(I, holoEntity(I):boxSize()*ScaleFactor)",
+                "        holoParent(I,StartingHoloIndex)",
+                "    } ",
+                ""
+            )
+        }
     }elseif(Status == "building"){
         if (UseProps){
             generatePropsFromCurBuild()
+        }elseif(AsFunc){
+            generateFuncFromCurBuild()
         }else{
             generateFromCurBuild()
         }

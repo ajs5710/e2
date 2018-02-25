@@ -4,6 +4,8 @@
 @persist Jumping
 @trigger 
 
+#flag governing if chips are allowed to use concmds: wire_expression2_concmd 
+
 interval(50)
 
 if (first()){
