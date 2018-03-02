@@ -4,9 +4,9 @@
 @persist Scale
 @trigger 
 
+interval(25)
+
 if (first()){
-    runOnTick(1)
-    
     Scale = 1/50
 }
 

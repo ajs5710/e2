@@ -1,0 +1,147 @@
+@name bootstrap_builder
+@inputs 
+@outputs BSSectionRun
+@persist ChipLines:array Name:string Inputs:array Outputs:array Persist:array Includes:table BSSectionRun BSSectionNumber
+@trigger 
+
+
+if (first()){
+    
+    #using bsUseSections will limit the speed at which a bootstrap script can run
+        #it is literally the same as using interval() except that it keeps track of what section should be run
+        
+        #section run is the section that will run this execution of the calling chip
+        #section number is the current section that we are on
+            #after a section is run we increase the SectionRun value 
+        
+        function number bsDefSection(S:string){
+            BSSectionNumber += 1
+            if (BSSectionRun == BSSectionNumber){
+                return 1
+            }else{
+                return 0
+            }
+        }
+        
+        function bsUseSections(N:number){
+            interval(150)
+            BSSectionNumber = 0
+            BSSectionRun += 1
+        }
+        
+        function bsUseSections(){
+            bsUseSections(150)
+        }
+    #end bsDefSection Logic
+
+
+
+    function string tab(){
+        return "    "
+    }
+    function string tab(N){
+        return tab():repeat(N)
+    }
+    
+    function string string:capitalize(){
+        return This[1]:upper() + This:sub(2)
+    }
+    
+    function array array:indent(){
+        local Result = array()
+        foreach(I, L:string = This){
+            Result:pushString(tab() + L)
+        }
+        return Result
+    }
+    
+    function bsInitChip(){
+        ChipLines = array("", "")
+        Name = ""
+        Inputs = array()
+        Outputs = array()
+        Persist = array()
+        Includes = table()
+    }
+    
+    #the bootstrapping chip must include any files which are going to be included
+    function bsAddInclude(S:string){
+        Includes[S, string] = ""
+    }
+    
+    function bsSetName(N:string){
+        Name = N
+    }
+    
+    function bsAddInput(V:string, T:string){
+        Inputs:pushString(V + ":" + T)
+    }
+    
+    function bsAddOutput(V:string, T:string){
+        Outputs:pushString(V + ":" + T)
+    }
+    
+    function bsAddPersist(V:string, T:string){
+        Persist:pushString(V + ":" + T)
+    }
+    
+    function bsAddLine(S:string){
+        ChipLines:pushString(S)
+    }
+    function bsAddLineFirst(S:string){
+        ChipLines:pushString("if (first()){")
+        ChipLines:pushString(tab() + S)
+        ChipLines:pushString("}")
+    }
+    
+    function bsAddLines(Ls:array){
+        ChipLines = ChipLines:add(Ls)
+    }
+    function bsAddLinesFirst(Ls:array){   
+        ChipLines:pushString("if (first()){")
+        ChipLines = ChipLines:add(Ls:indent())
+        ChipLines:pushString("}")
+    }
+    
+    function bsAddComment(S:string){
+        ChipLines:pushString("# " + S)
+    }
+    
+    function bsAddBreak(){
+        ChipLines:pushString("")
+    }
+    
+    function bsAddBreak(N){
+        for(I = 0, N){
+            ChipLines:pushString("")
+        }
+    }
+    
+    function bootstrap_now(Chip:entity){
+        Headers = array(
+            "@name " + Name,
+            "@inputs " + Inputs:concat(" "),
+            "@outputs " + Outputs:concat(" "),
+            "@persist " + Persist:concat(" "),
+            ""
+        )
+        
+        Headers:pushString("if (first()){")
+        foreach(I, Inc:string = Includes:keys()){
+            Headers:pushString(tab() + "#include \"" + Inc + "\"")
+        }
+        Headers:pushString("}")
+        
+        Chip:remoteSetCode(Headers:add(ChipLines):concat("\n"), getCodeIncludes():intersect(Includes))
+    }
+    
+    function bootstrap(){
+        bootstrap_now(entity())
+    }
+    
+    function bootstrap(Chip:entity){
+        bootstrap_now(Chip)
+    }
+    
+}
+

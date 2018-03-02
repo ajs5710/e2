@@ -3,7 +3,7 @@
 @outputs Status:string SaveNames:array Name:string LastI Scale
 @persist SaveNames:array Saves:array Status:string Name:string Func:array
 @persist LastI Buffer:string FileName:string ExportFileName:string
-@persist Constrained:array CurBuild:string Scale Orient UseProps SpamDelay SpamDelayed AsFunc
+@persist Constrained:array CurBuild:string Scale Orient UseProps SpamDelay SpamDelayed AsFunc OverwriteOnExport
 @trigger 
 
 runOnFile(1)
@@ -24,6 +24,7 @@ if (first()){
     #One extra command was added:
     #!exportfunction name #builds an e2 into the ExportFileName file (in the data/e2files folder)
     ExportFileName = "sampleOutput.txt"
+    OverwriteOnExport = 1
     
     #And Several auxilliary commands
     #!hide #hide and show toggle the alpha of the chip 
@@ -344,6 +345,9 @@ if (first()){
             FuncOutput = Func:concat("\n")
             fileWrite(ExportFileName, FuncOutput)
             hint("Export Complete", 5)
+            if (OverwriteOnExport == 1){
+                entity():remoteSetCode(FuncOutput)
+            }
         }
     }
     
