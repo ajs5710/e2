@@ -14,17 +14,31 @@ if (first()){
         #section number is the current section that we are on
             #after a section is run we increase the SectionRun value 
         
-        function number bsDefSection(S:string){
+        function number bsDefSection(S:string, HeaderW:number){
             BSSectionNumber += 1
             if (BSSectionRun == BSSectionNumber){
+                ChipLines:pushString("")
+                ChipLines:pushString("")
+                
+                if (S != ""){
+                    local HashLength = (HeaderW/2) - (S:length()/2)
+                    ChipLines:pushString("#":repeat(floor(HashLength)) + S + "#":repeat(ceil(HashLength)))
+                }
+                
                 return 1
             }else{
                 return 0
             }
         }
+        function number bsDefSection(S:string){
+            return bsDefSection(S, 100)
+        }
+        function number bsDefSection(){
+            return bsDefSection("", 0)
+        }
         
         function bsUseSections(N:number){
-            interval(150)
+            interval(N)
             BSSectionNumber = 0
             BSSectionRun += 1
         }
@@ -135,12 +149,18 @@ if (first()){
         Chip:remoteSetCode(Headers:add(ChipLines):concat("\n"), getCodeIncludes():intersect(Includes))
     }
     
-    function bootstrap(){
-        bootstrap_now(entity())
-    }
-    
     function bootstrap(Chip:entity){
         bootstrap_now(Chip)
+    }
+    
+    function bootstrap(){
+        if (BSSectionNumber > 0){
+            if (BSSectionRun <= BSSectionNumber){
+                return
+            }
+        }
+        
+        bootstrap(entity())
     }
     
 }

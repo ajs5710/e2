@@ -1,0 +1,59 @@
+@name 
+@inputs 
+@outputs 
+@persist
+@trigger 
+
+if (first()){
+    #include "github/lib/bootstrap_builder"
+    #include "github/lib/compares"
+            
+    bsInitChip()
+    bsSetName("array_lib")
+    bsAddInclude("github/lib/compares")
+}
+
+bsUseSections()
+
+
+foreach(I, ComparableType:string = array("number", "string")){
+    if (bsDefSection("sort<type>By" + ComparableType:capitalize())){
+        SectionLines = array()
+        
+        foreach(J, ArrayType:string = array("number", "string", "vector", "entity", "angle")){
+            SectionLines = SectionLines:add(array(
+                "",
+                "function array array:sort" + ArrayType:capitalize() + "sBy" + ComparableType:capitalize() + "(Func:string){",
+                tab() + "local SortedArr = array()",
+                tab() + "foreach(I, A:" + ArrayType + " = This){",
+                tab(2) + "local Inserted = 0",
+                tab(2) + "foreach(J, B:" + ArrayType + " = SortedArr){",
+                tab(3) + "if (Func(A)[" + ComparableType + "]:compare(Func(B)[" + ComparableType + "]) < 0){",
+                tab(4) + "SortedArr:insert" + ArrayType:capitalize() + "(J, A)",
+                tab(4) + "Inserted = 1",
+                tab(4) + "break",
+                tab(3) + "}",
+                tab(2) + "}",
+                tab(2) + "if (Inserted == 0){",
+                tab(3) + "SortedArr:push" + ArrayType:capitalize() + "(A)",
+                tab(2) + "}",
+                tab() + "}",
+                tab() + "return SortedArr",
+                "}"
+            ))
+        }
+        
+        bsAddLinesFirst(SectionLines)
+    }
+}
+
+if (bsDefSection("Tests")){
+    bsAddLines(array(
+        "foreach(I, N:number = array(4, 5, 3, 1, 2):sortNumbersByNumber(\"int\")){",
+        tab() + "print(N)",
+        "}"
+    ))
+    
+}
+
+bootstrap()

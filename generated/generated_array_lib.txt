@@ -1,0 +1,206 @@
+@name generated array_lib
+@inputs 
+@outputs 
+@persist 
+
+if (first()){
+    #include "github/lib/compares"
+}
+
+
+
+
+#########################################sort<type>ByNumber#########################################
+if (first()){
+    
+    function array array:sortNumbersByNumber(Func:string){
+        local SortedArr = array()
+        foreach(I, A:number = This){
+            local Inserted = 0
+            foreach(J, B:number = SortedArr){
+                if (Func(A)[number]:compare(Func(B)[number]) < 0){
+                    SortedArr:insertNumber(J, A)
+                    Inserted = 1
+                    break
+                }
+            }
+            if (Inserted == 0){
+                SortedArr:pushNumber(A)
+            }
+        }
+        return SortedArr
+    }
+    
+    function array array:sortStringsByNumber(Func:string){
+        local SortedArr = array()
+        foreach(I, A:string = This){
+            local Inserted = 0
+            foreach(J, B:string = SortedArr){
+                if (Func(A)[number]:compare(Func(B)[number]) < 0){
+                    SortedArr:insertString(J, A)
+                    Inserted = 1
+                    break
+                }
+            }
+            if (Inserted == 0){
+                SortedArr:pushString(A)
+            }
+        }
+        return SortedArr
+    }
+    
+    function array array:sortVectorsByNumber(Func:string){
+        local SortedArr = array()
+        foreach(I, A:vector = This){
+            local Inserted = 0
+            foreach(J, B:vector = SortedArr){
+                if (Func(A)[number]:compare(Func(B)[number]) < 0){
+                    SortedArr:insertVector(J, A)
+                    Inserted = 1
+                    break
+                }
+            }
+            if (Inserted == 0){
+                SortedArr:pushVector(A)
+            }
+        }
+        return SortedArr
+    }
+    
+    function array array:sortEntitysByNumber(Func:string){
+        local SortedArr = array()
+        foreach(I, A:entity = This){
+            local Inserted = 0
+            foreach(J, B:entity = SortedArr){
+                if (Func(A)[number]:compare(Func(B)[number]) < 0){
+                    SortedArr:insertEntity(J, A)
+                    Inserted = 1
+                    break
+                }
+            }
+            if (Inserted == 0){
+                SortedArr:pushEntity(A)
+            }
+        }
+        return SortedArr
+    }
+    
+    function array array:sortAnglesByNumber(Func:string){
+        local SortedArr = array()
+        foreach(I, A:angle = This){
+            local Inserted = 0
+            foreach(J, B:angle = SortedArr){
+                if (Func(A)[number]:compare(Func(B)[number]) < 0){
+                    SortedArr:insertAngle(J, A)
+                    Inserted = 1
+                    break
+                }
+            }
+            if (Inserted == 0){
+                SortedArr:pushAngle(A)
+            }
+        }
+        return SortedArr
+    }
+}
+
+
+#########################################sort<type>ByString#########################################
+if (first()){
+    
+    function array array:sortNumbersByString(Func:string){
+        local SortedArr = array()
+        foreach(I, A:number = This){
+            local Inserted = 0
+            foreach(J, B:number = SortedArr){
+                if (Func(A)[string]:compare(Func(B)[string]) < 0){
+                    SortedArr:insertNumber(J, A)
+                    Inserted = 1
+                    break
+                }
+            }
+            if (Inserted == 0){
+                SortedArr:pushNumber(A)
+            }
+        }
+        return SortedArr
+    }
+    
+    function array array:sortStringsByString(Func:string){
+        local SortedArr = array()
+        foreach(I, A:string = This){
+            local Inserted = 0
+            foreach(J, B:string = SortedArr){
+                if (Func(A)[string]:compare(Func(B)[string]) < 0){
+                    SortedArr:insertString(J, A)
+                    Inserted = 1
+                    break
+                }
+            }
+            if (Inserted == 0){
+                SortedArr:pushString(A)
+            }
+        }
+        return SortedArr
+    }
+    
+    function array array:sortVectorsByString(Func:string){
+        local SortedArr = array()
+        foreach(I, A:vector = This){
+            local Inserted = 0
+            foreach(J, B:vector = SortedArr){
+                if (Func(A)[string]:compare(Func(B)[string]) < 0){
+                    SortedArr:insertVector(J, A)
+                    Inserted = 1
+                    break
+                }
+            }
+            if (Inserted == 0){
+                SortedArr:pushVector(A)
+            }
+        }
+        return SortedArr
+    }
+    
+    function array array:sortEntitysByString(Func:string){
+        local SortedArr = array()
+        foreach(I, A:entity = This){
+            local Inserted = 0
+            foreach(J, B:entity = SortedArr){
+                if (Func(A)[string]:compare(Func(B)[string]) < 0){
+                    SortedArr:insertEntity(J, A)
+                    Inserted = 1
+                    break
+                }
+            }
+            if (Inserted == 0){
+                SortedArr:pushEntity(A)
+            }
+        }
+        return SortedArr
+    }
+    
+    function array array:sortAnglesByString(Func:string){
+        local SortedArr = array()
+        foreach(I, A:angle = This){
+            local Inserted = 0
+            foreach(J, B:angle = SortedArr){
+                if (Func(A)[string]:compare(Func(B)[string]) < 0){
+                    SortedArr:insertAngle(J, A)
+                    Inserted = 1
+                    break
+                }
+            }
+            if (Inserted == 0){
+                SortedArr:pushAngle(A)
+            }
+        }
+        return SortedArr
+    }
+}
+
+
+###############################################Tests################################################
+foreach(I, N:number = array(4, 5, 3, 1, 2):sortNumbersByNumber("int")){
+    print(N)
+}
