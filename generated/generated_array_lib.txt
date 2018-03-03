@@ -1,4 +1,4 @@
-@name generated array_lib
+@name array_lib
 @inputs 
 @outputs 
 @persist 
@@ -13,12 +13,14 @@ if (first()){
 #########################################sort<type>ByNumber#########################################
 if (first()){
     
-    function array array:sortNumbersByNumber(Func:string){
+    function array array:sortNumbersByNumber(Func:string, Desc:number){
         local SortedArr = array()
         foreach(I, A:number = This){
             local Inserted = 0
             foreach(J, B:number = SortedArr){
-                if (Func(A)[number]:compare(Func(B)[number]) < 0){
+                local AVal = (Desc ? Func(B)[number] : Func(A)[number])
+                local BVal = (Desc ? Func(A)[number] : Func(B)[number])
+                if (AVal:compare(BVal) < 0){
                     SortedArr:insertNumber(J, A)
                     Inserted = 1
                     break
@@ -30,13 +32,18 @@ if (first()){
         }
         return SortedArr
     }
+    function array array:sortNumbersByNumber(Func:string){
+        return This:sortNumbersByNumber(Func, 0)
+    }
     
-    function array array:sortStringsByNumber(Func:string){
+    function array array:sortStringsByNumber(Func:string, Desc:number){
         local SortedArr = array()
         foreach(I, A:string = This){
             local Inserted = 0
             foreach(J, B:string = SortedArr){
-                if (Func(A)[number]:compare(Func(B)[number]) < 0){
+                local AVal = (Desc ? Func(B)[number] : Func(A)[number])
+                local BVal = (Desc ? Func(A)[number] : Func(B)[number])
+                if (AVal:compare(BVal) < 0){
                     SortedArr:insertString(J, A)
                     Inserted = 1
                     break
@@ -48,13 +55,18 @@ if (first()){
         }
         return SortedArr
     }
+    function array array:sortStringsByNumber(Func:string){
+        return This:sortStringsByNumber(Func, 0)
+    }
     
-    function array array:sortVectorsByNumber(Func:string){
+    function array array:sortVectorsByNumber(Func:string, Desc:number){
         local SortedArr = array()
         foreach(I, A:vector = This){
             local Inserted = 0
             foreach(J, B:vector = SortedArr){
-                if (Func(A)[number]:compare(Func(B)[number]) < 0){
+                local AVal = (Desc ? Func(B)[number] : Func(A)[number])
+                local BVal = (Desc ? Func(A)[number] : Func(B)[number])
+                if (AVal:compare(BVal) < 0){
                     SortedArr:insertVector(J, A)
                     Inserted = 1
                     break
@@ -66,13 +78,18 @@ if (first()){
         }
         return SortedArr
     }
+    function array array:sortVectorsByNumber(Func:string){
+        return This:sortVectorsByNumber(Func, 0)
+    }
     
-    function array array:sortEntitysByNumber(Func:string){
+    function array array:sortEntitysByNumber(Func:string, Desc:number){
         local SortedArr = array()
         foreach(I, A:entity = This){
             local Inserted = 0
             foreach(J, B:entity = SortedArr){
-                if (Func(A)[number]:compare(Func(B)[number]) < 0){
+                local AVal = (Desc ? Func(B)[number] : Func(A)[number])
+                local BVal = (Desc ? Func(A)[number] : Func(B)[number])
+                if (AVal:compare(BVal) < 0){
                     SortedArr:insertEntity(J, A)
                     Inserted = 1
                     break
@@ -84,13 +101,18 @@ if (first()){
         }
         return SortedArr
     }
+    function array array:sortEntitysByNumber(Func:string){
+        return This:sortEntitysByNumber(Func, 0)
+    }
     
-    function array array:sortAnglesByNumber(Func:string){
+    function array array:sortAnglesByNumber(Func:string, Desc:number){
         local SortedArr = array()
         foreach(I, A:angle = This){
             local Inserted = 0
             foreach(J, B:angle = SortedArr){
-                if (Func(A)[number]:compare(Func(B)[number]) < 0){
+                local AVal = (Desc ? Func(B)[number] : Func(A)[number])
+                local BVal = (Desc ? Func(A)[number] : Func(B)[number])
+                if (AVal:compare(BVal) < 0){
                     SortedArr:insertAngle(J, A)
                     Inserted = 1
                     break
@@ -101,6 +123,9 @@ if (first()){
             }
         }
         return SortedArr
+    }
+    function array array:sortAnglesByNumber(Func:string){
+        return This:sortAnglesByNumber(Func, 0)
     }
 }
 
@@ -108,12 +133,14 @@ if (first()){
 #########################################sort<type>ByString#########################################
 if (first()){
     
-    function array array:sortNumbersByString(Func:string){
+    function array array:sortNumbersByString(Func:string, Desc:number){
         local SortedArr = array()
         foreach(I, A:number = This){
             local Inserted = 0
             foreach(J, B:number = SortedArr){
-                if (Func(A)[string]:compare(Func(B)[string]) < 0){
+                local AVal = (Desc ? Func(B)[string] : Func(A)[string])
+                local BVal = (Desc ? Func(A)[string] : Func(B)[string])
+                if (AVal:compare(BVal) < 0){
                     SortedArr:insertNumber(J, A)
                     Inserted = 1
                     break
@@ -125,13 +152,18 @@ if (first()){
         }
         return SortedArr
     }
+    function array array:sortNumbersByString(Func:string){
+        return This:sortNumbersByString(Func, 0)
+    }
     
-    function array array:sortStringsByString(Func:string){
+    function array array:sortStringsByString(Func:string, Desc:number){
         local SortedArr = array()
         foreach(I, A:string = This){
             local Inserted = 0
             foreach(J, B:string = SortedArr){
-                if (Func(A)[string]:compare(Func(B)[string]) < 0){
+                local AVal = (Desc ? Func(B)[string] : Func(A)[string])
+                local BVal = (Desc ? Func(A)[string] : Func(B)[string])
+                if (AVal:compare(BVal) < 0){
                     SortedArr:insertString(J, A)
                     Inserted = 1
                     break
@@ -143,13 +175,18 @@ if (first()){
         }
         return SortedArr
     }
+    function array array:sortStringsByString(Func:string){
+        return This:sortStringsByString(Func, 0)
+    }
     
-    function array array:sortVectorsByString(Func:string){
+    function array array:sortVectorsByString(Func:string, Desc:number){
         local SortedArr = array()
         foreach(I, A:vector = This){
             local Inserted = 0
             foreach(J, B:vector = SortedArr){
-                if (Func(A)[string]:compare(Func(B)[string]) < 0){
+                local AVal = (Desc ? Func(B)[string] : Func(A)[string])
+                local BVal = (Desc ? Func(A)[string] : Func(B)[string])
+                if (AVal:compare(BVal) < 0){
                     SortedArr:insertVector(J, A)
                     Inserted = 1
                     break
@@ -161,13 +198,18 @@ if (first()){
         }
         return SortedArr
     }
+    function array array:sortVectorsByString(Func:string){
+        return This:sortVectorsByString(Func, 0)
+    }
     
-    function array array:sortEntitysByString(Func:string){
+    function array array:sortEntitysByString(Func:string, Desc:number){
         local SortedArr = array()
         foreach(I, A:entity = This){
             local Inserted = 0
             foreach(J, B:entity = SortedArr){
-                if (Func(A)[string]:compare(Func(B)[string]) < 0){
+                local AVal = (Desc ? Func(B)[string] : Func(A)[string])
+                local BVal = (Desc ? Func(A)[string] : Func(B)[string])
+                if (AVal:compare(BVal) < 0){
                     SortedArr:insertEntity(J, A)
                     Inserted = 1
                     break
@@ -179,13 +221,18 @@ if (first()){
         }
         return SortedArr
     }
+    function array array:sortEntitysByString(Func:string){
+        return This:sortEntitysByString(Func, 0)
+    }
     
-    function array array:sortAnglesByString(Func:string){
+    function array array:sortAnglesByString(Func:string, Desc:number){
         local SortedArr = array()
         foreach(I, A:angle = This){
             local Inserted = 0
             foreach(J, B:angle = SortedArr){
-                if (Func(A)[string]:compare(Func(B)[string]) < 0){
+                local AVal = (Desc ? Func(B)[string] : Func(A)[string])
+                local BVal = (Desc ? Func(A)[string] : Func(B)[string])
+                if (AVal:compare(BVal) < 0){
                     SortedArr:insertAngle(J, A)
                     Inserted = 1
                     break
@@ -197,10 +244,13 @@ if (first()){
         }
         return SortedArr
     }
+    function array array:sortAnglesByString(Func:string){
+        return This:sortAnglesByString(Func, 0)
+    }
 }
 
 
 ###############################################Tests################################################
-foreach(I, N:number = array(4, 5, 3, 1, 2):sortNumbersByNumber("int")){
+foreach(I, N:number = array(4, 5, 3, 1, 2):sortNumbersByNumber("int", 1)){
     print(N)
 }

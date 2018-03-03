@@ -21,14 +21,17 @@ foreach(I, ComparableType:string = array("number", "string")){
         SectionLines = array()
         
         foreach(J, ArrayType:string = array("number", "string", "vector", "entity", "angle")){
+            FunctionName = "sort" + ArrayType:capitalize() + "sBy" + ComparableType:capitalize()
             SectionLines = SectionLines:add(array(
                 "",
-                "function array array:sort" + ArrayType:capitalize() + "sBy" + ComparableType:capitalize() + "(Func:string){",
+                "function array array:" + FunctionName + "(Func:string, Desc:number){",
                 tab() + "local SortedArr = array()",
                 tab() + "foreach(I, A:" + ArrayType + " = This){",
                 tab(2) + "local Inserted = 0",
                 tab(2) + "foreach(J, B:" + ArrayType + " = SortedArr){",
-                tab(3) + "if (Func(A)[" + ComparableType + "]:compare(Func(B)[" + ComparableType + "]) < 0){",
+                tab(3) + "local AVal = (Desc ? Func(B)[" + ComparableType + "] : Func(A)[" + ComparableType + "])",
+                tab(3) + "local BVal = (Desc ? Func(A)[" + ComparableType + "] : Func(B)[" + ComparableType + "])",
+                tab(3) + "if (AVal:compare(BVal) < 0){",
                 tab(4) + "SortedArr:insert" + ArrayType:capitalize() + "(J, A)",
                 tab(4) + "Inserted = 1",
                 tab(4) + "break",
@@ -39,6 +42,9 @@ foreach(I, ComparableType:string = array("number", "string")){
                 tab(2) + "}",
                 tab() + "}",
                 tab() + "return SortedArr",
+                "}",
+                "function array array:" + FunctionName + "(Func:string){",
+                tab() + "return This:" + FunctionName + "(Func, 0)",
                 "}"
             ))
         }
@@ -49,7 +55,7 @@ foreach(I, ComparableType:string = array("number", "string")){
 
 if (bsDefSection("Tests")){
     bsAddLines(array(
-        "foreach(I, N:number = array(4, 5, 3, 1, 2):sortNumbersByNumber(\"int\")){",
+        "foreach(I, N:number = array(4, 5, 3, 1, 2):sortNumbersByNumber(\"int\", 1)){",
         tab() + "print(N)",
         "}"
     ))
