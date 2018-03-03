@@ -1,23 +1,23 @@
 @name 
 @inputs 
 @outputs 
-@persist
+@persist Chip:table
 @trigger 
 
 if (first()){
     #include "github/lib/bootstrap_builder"
     #include "github/lib/compares"
             
-    bsInitChip()
-    bsSetName("array_lib")
-    bsAddInclude("github/lib/compares")
+    Chip = bsInitChip()
+    Chip:bsSetName("array_lib")
+    Chip:bsAddInclude("github/lib/compares")
 }
 
-bsUseSections()
+Chip:bsUseSections()
 
 
 foreach(I, ComparableType:string = array("number", "string")){
-    if (bsDefSection("sort<type>By" + ComparableType:capitalize())){
+    if (Chip:bsDefSection("sort<type>By" + ComparableType:capitalize())){
         SectionLines = array()
         
         foreach(J, ArrayType:string = array("number", "string", "vector", "entity", "angle")){
@@ -49,12 +49,12 @@ foreach(I, ComparableType:string = array("number", "string")){
             ))
         }
         
-        bsAddLinesFirst(SectionLines)
+        Chip:bsAddLinesFirst(SectionLines)
     }
 }
 
-if (bsDefSection("Tests")){
-    bsAddLines(array(
+if (Chip:bsDefSection("Tests")){
+    Chip:bsAddLines(array(
         "foreach(I, N:number = array(4, 5, 3, 1, 2):sortNumbersByNumber(\"int\", 1)){",
         tab() + "print(N)",
         "}"
@@ -62,4 +62,4 @@ if (bsDefSection("Tests")){
     
 }
 
-bootstrap()
+Chip:bootstrap()

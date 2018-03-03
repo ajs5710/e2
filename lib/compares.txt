@@ -23,10 +23,10 @@ function number string:compare(BS:string){
         
         if (Abyte == Bbyte){
         }elseif (Abyte < Bbyte){
-            print("Abyte:" + Abyte + " < Bbyte:" + Bbyte)
+            #print("Abyte:" + Abyte + " < Bbyte:" + Bbyte)
             return -1
         }else{
-            print("Abyte:" + Abyte + " < Bbyte:" + Bbyte)
+            #print("Abyte:" + Abyte + " < Bbyte:" + Bbyte)
             return 1
         }
     }
