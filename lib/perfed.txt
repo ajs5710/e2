@@ -1,0 +1,96 @@
+@name 
+@inputs 
+@outputs 
+@persist BlockTables:table
+@trigger 
+
+#[ Structure of PerfedTables
+    {
+        "perfname" => {
+            "done" => 0 or 1 flag indicating if work for that perf is done
+            "values" => returns a table that the calling function should use to persist state
+            "first" => 0 or 1 flag indicating if this is the first call to the perfedBlock
+    }
+]#
+
+#[ Expected function useage
+    
+    if (perfedBlock("uniquenameforblock")){
+        Vars = perfedValues("uniquenameforblock")
+        if (perfedBlockFirst("uniquenameforblock")){
+            some setup maybe init some values like
+            Vars["i", number] = 1
+        }
+        
+        for(I = Vars["i", number], 10){
+            do some stuff
+            
+            if (perfBreak()){
+                Vars["i", number] = I
+                break
+            }
+        }
+        point at which perfedBlockLast becomes determinite
+        
+        if (perfedBlockLast("uniquenameforblock")){
+            do some cleanup and maybe set final values (like a return)
+        }else{
+            exit #if it's not the last block we broke for performance reasons so maybe exit here
+        }
+    }else{
+        perfedValues("uniquenameforblock")["whatevervaluewasthegoal", type]
+    }
+]#
+
+if (first()){
+    BlockTables = table()
+    
+    function table blockTable(Id:string){
+        return BlockTables[Id, table]
+    }
+    
+    function number block(Id:string){
+        if (BlockTables:exists(Id)){
+            BlockTable = blockTable(Id)
+            BlockTable["first", number] = 0
+            return !BlockTables[Id, table]["done", number]
+        }else{
+            local BlockTable = table()
+            BlockTable["done", number] = 0
+            BlockTable["values", table] = table()
+            BlockTable["first", number] = 1
+            
+            BlockTables[Id, table] = BlockTable
+            return 1
+        }
+    }
+    
+    function table blockValues(Id:string){
+        return BlockTables[Id, table]["values", table]
+    }
+    
+    function blockCompleted(Id:string){
+        local BlockTable = blockTable(Id)
+        BlockTable["done", number] = 0
+    }
+    
+    function number blockPerfBreak(Id:string){
+        local BlockTable = blockTable(Id)
+        if (perf(20)){
+            BlockTable["done", number] = 1
+        }else{
+            BlockTable["done", number] = 0
+        }
+        
+        return !BlockTable["done", number]
+    }
+    
+    function number blockFirst(Id:string){
+        return blockTable(Id)["first", number]
+    }
+    
+    function number blockLast(Id:string){
+        return blockTable(Id)["done", number]
+    }
+    
+}

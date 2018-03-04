@@ -53,6 +53,12 @@ foreach(I, ComparableType:string = array("number", "string")){
     }
 }
 
+#sample
+#map
+#index_by
+#first
+#last
+
 if (Chip:bsDefSection("Tests")){
     Chip:bsAddLines(array(
         "foreach(I, N:number = array(4, 5, 3, 1, 2):sortNumbersByNumber(\"int\", 1)){",

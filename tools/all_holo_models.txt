@@ -146,31 +146,33 @@ if (httpClk()){
             
         }
     }elseif(Status == "done"){
-        CurAimHolo:setAlpha(UnselectedAlpha)
-        
-        for(I = LastI, HoloModels:count()){
-            if (perf()){
-                LastI = 1
-            }else{
-                LastI = I
-                break
+        if (owner():keyUse()){
+            CurAimHolo:setAlpha(UnselectedAlpha)
+            
+            for(I = LastI, HoloModels:count()){
+                if (perf()){
+                    LastI = 1
+                }else{
+                    LastI = I
+                    break
+                }
+                
+                AimHolo = HoloModels[I, entity]
+                DistToHolo = (AimHolo:pos() - owner():shootPos()):length()
+                AimPos = DistToHolo*owner():eye() + owner():shootPos()
+                
+                if ((AimHolo:pos() - AimPos):length() < AimHolo:radius()){
+                    CurAimHolo = AimHolo
+                    break
+                }
             }
             
-            AimHolo = HoloModels[I, entity]
-            DistToHolo = (AimHolo:pos() - owner():shootPos()):length()
-            AimPos = DistToHolo*owner():eye() + owner():shootPos()
-            
-            if ((AimHolo:pos() - AimPos):length() < AimHolo:radius()){
-                CurAimHolo = AimHolo
-                break
-            }
-        }
-        
-        if (CurAimHolo:isValid()){
-            CurAimHolo:setAlpha(255)
-            
-            if (changed(CurAimHolo)){
-                print(CurAimHolo["HoloModel", string] + ":" + CurAimHolo["KeyGroup", string])
+            if (CurAimHolo:isValid()){
+                CurAimHolo:setAlpha(255)
+                
+                if (changed(CurAimHolo)){
+                    print(CurAimHolo["HoloModel", string] + ":" + CurAimHolo["KeyGroup", string])
+                }
             }
         }
     }
