@@ -27,7 +27,9 @@
             
             if (perfBreak()){
                 Vars["i", number] = I
-                break
+                exit
+            }else{
+                Vars["i", number] = 1 #not important here but if this was a nested loop it could be
             }
         }
         point at which perfedBlockLast becomes determinite
@@ -49,48 +51,68 @@ if (first()){
         return BlockTables[Id, table]
     }
     
-    function number block(Id:string){
+    function number table:blockNotDone(){
+        return !This["done", number]
+    }
+    
+    function table:blockDone(N:number){
+        This["done", number] = N
+    }
+    
+    #inits and records the iteration of the block #expected to be called exactly once per block execution
+    function table block(Id:string){
         if (BlockTables:exists(Id)){
-            BlockTable = blockTable(Id)
-            BlockTable["first", number] = 0
-            return !BlockTables[Id, table]["done", number]
+            local BlockTable = blockTable(Id)
+            
+            if (BlockTable:blockNotDone()){
+                BlockTable["exec_number", number] = BlockTable["exec_number", number] + 1
+            }
+            return BlockTable
         }else{
             local BlockTable = table()
             BlockTable["done", number] = 0
             BlockTable["values", table] = table()
-            BlockTable["first", number] = 1
-            
+            BlockTable["exec_number", number] = 0
             BlockTables[Id, table] = BlockTable
-            return 1
+            
+            return BlockTable
         }
     }
     
-    function table blockValues(Id:string){
-        return BlockTables[Id, table]["values", table]
+    function table table:blockValues(){
+        return This["values", table]
     }
     
-    function blockCompleted(Id:string){
-        local BlockTable = blockTable(Id)
-        BlockTable["done", number] = 0
-    }
-    
-    function number blockPerfBreak(Id:string){
-        local BlockTable = blockTable(Id)
-        if (perf(20)){
-            BlockTable["done", number] = 1
+    function number table:blockPerfBreak(N:number){
+        if (perf(N)){
+            This["done", number] = 1
         }else{
-            BlockTable["done", number] = 0
+            This["done", number] = 0
         }
         
-        return !BlockTable["done", number]
+        return This:blockNotDone()
+    }
+    function number table:blockPerfBreak(){
+        return This:blockPerfBreak(80)
     }
     
-    function number blockFirst(Id:string){
-        return blockTable(Id)["first", number]
+    function number table:blockFirst(){
+        return (This["exec_number", number] == 0)
     }
     
-    function number blockLast(Id:string){
-        return blockTable(Id)["done", number]
+    function number table:blockLast(){
+        return This["done", number]
     }
     
+    
+    function table blockReset(Id:string){
+        BlockTables:remove(Id)
+        return block(Id)
+    }
+    
+    function blockResetAll(){
+        BlockTables:clear()
+    }
 }
+
+
