@@ -7,17 +7,18 @@
 #[ Structure of PerfedTables
     {
         "perfname" => {
-            "done" => 0 or 1 flag indicating if work for that perf is done
+            "done" => 0 or 1 flag indicating if work for the block is done
             "values" => returns a table that the calling function should use to persist state
-            "first" => 0 or 1 flag indicating if this is the first call to the perfedBlock
+            "exec_number" => number indicating what execution of the block we are on
+            "return" => this value is expected to be set by any functions that are written to use a block #it should be set in a blockLast() check
     }
 ]#
 
 #[ Expected function useage
-    
-    if (perfedBlock("uniquenameforblock")){
-        Vars = perfedValues("uniquenameforblock")
-        if (perfedBlockFirst("uniquenameforblock")){
+    Block = block("uniquenameforblock")
+    if (Block:blockNotDone()){
+        Vars = Block:blockValues()
+        if (Block:blockFirst()){
             some setup maybe init some values like
             Vars["i", number] = 1
         }
@@ -25,22 +26,23 @@
         for(I = Vars["i", number], 10){
             do some stuff
             
-            if (perfBreak()){
+            if (Block:blockPerfBreak()){
                 Vars["i", number] = I
-                exit
+                exit()
             }else{
                 Vars["i", number] = 1 #not important here but if this was a nested loop it could be
             }
         }
-        point at which perfedBlockLast becomes determinite
         
-        if (perfedBlockLast("uniquenameforblock")){
-            do some cleanup and maybe set final values (like a return)
-        }else{
-            exit #if it's not the last block we broke for performance reasons so maybe exit here
+        #if block execution is aborted for a reason other than performance it is important to let the block know that it is not done
+        if (propCanCreate()){
+            Block:blockDone(0)
+            exit()
         }
-    }else{
-        perfedValues("uniquenameforblock")["whatevervaluewasthegoal", type]
+        
+        if (Block:blockLast()){
+            #do some cleanup and maybe set final values (like a return)
+        }
     }
 ]#
 

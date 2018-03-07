@@ -7,7 +7,7 @@
 interval(500)
 
 if (first()){
-    #include "github/lib/perfed"
+    #include "github/lib/blocks"
     
     runOnChat(1)
     

@@ -46,7 +46,7 @@ if (first()){
         }
         
         function table:bsUseSections(){
-            This:bsUseSections(150)
+            This:bsUseSections(200) #this is 200ms because that is filewrite cooldown
         }
     #end bsDefSection Logic
 
@@ -116,7 +116,7 @@ if (first()){
         }
     }
     
-    function table:bootstrap_now(Chip:entity){
+    function string table:bootstrap_build_code(){
         local Headers = array(
             "@name " + This["name", string],
             "@inputs " + This["inputs", array]:concat(" "),
@@ -131,7 +131,28 @@ if (first()){
         }
         Headers:pushString("}")
         
-        Chip:remoteSetCode(Headers:add(This["lines", array]):concat("\n"), getCodeIncludes():intersect(This["includes", table]))
+        return Headers:add(This["lines", array]):concat("\n")
+    }
+    
+    function table:bootstrap_now(Chip:entity){
+        Chip:remoteSetCode(This:bootstrap_build_code(), getCodeIncludes():intersect(This["includes", table]))
+    }
+    
+    function table:bootstrap_to_file(FileName:string, FilePath:string){
+        if (This["section_number", number] > 0){
+            if (This["section_run", number] <= This["section_number", number]){
+                return
+            }
+        }
+        
+        local FileString = FilePath + "/" + FileName
+        fileWrite(FileString, This:bootstrap_build_code())
+    }
+    function table:bootstrap_to_file(FileName:string){
+        This:bootstrap_to_file(FileName, ">e2shared/generated")
+    }
+    function table:bootstrap_to_file(){
+        This:bootstrap_to_file(This["name", string] + ".txt")
     }
     
     function table:bootstrap(Chip:entity){

@@ -1,7 +1,7 @@
 @name 
 @inputs 
 @outputs 
-@persist 
+@persist HoloI
 @trigger 
 
 if (first()){
