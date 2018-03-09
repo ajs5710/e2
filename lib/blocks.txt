@@ -49,6 +49,7 @@
 if (first()){
     BlockTables = table()
     BlockTables["child_blocks", table] = table()
+    BlockTables["completed_children", number] = 0
     
     function table blockRoot(){
         return BlockTables
@@ -59,7 +60,11 @@ if (first()){
     }
     
     function number table:blockNotDone(){
-        return !This["done", number]
+        #if our children are all completed 
+        if (This["child_blocks", table]:count() == This["completed_children", number]){
+            return !This["done", number]
+        }
+        return 1
     }
     
     function table:blockDone(N:number){
@@ -86,6 +91,7 @@ if (first()){
             return BlockTable
         }
     }]#
+    
     function table table:block(Id:string){
         Blocks = This["child_blocks", table]
         if (Blocks:exists(Id)){
@@ -93,6 +99,11 @@ if (first()){
             
             if (BlockTable:blockNotDone()){
                 BlockTable["exec_number", number] = BlockTable["exec_number", number] + 1
+            }elseif(!BlockTable["notified_parent", number]){
+                #if we're done when the code would go to declare us then we are for real done and need to notify our parent
+                    #delaying our reaction like this also delays our parent from being done by one execution this is sometimes neccessary for the next child block to be declared 
+                BlockTable["notified_parent", number] = 1
+                This["completed_children", number] = This["completed_children", number] + 1
             }
             return BlockTable
         }else{
@@ -101,13 +112,14 @@ if (first()){
             BlockTable["values", table] = table()
             BlockTable["exec_number", number] = 0
             BlockTable["child_blocks", table] = table()
+            BlockTable["completed_children", number] = 0
             Blocks[Id, table] = BlockTable
             
             return BlockTable
         }
     }
     function table block(Id:string){
-        return BlockTables:block(Id)
+        return blockRoot():block(Id)
     }
     
     function table table:blockValues(){
@@ -116,12 +128,12 @@ if (first()){
     
     function number table:blockPerfBreak(N:number){
         if (perf(N)){
-            This["done", number] = 1
+            This:blockDone(1)
+            return 0
         }else{
-            This["done", number] = 0
+            This:blockDone(0)
+            return 1
         }
-        
-        return This:blockNotDone()
     }
     function number table:blockPerfBreak(){
         return This:blockPerfBreak(80)
@@ -140,14 +152,14 @@ if (first()){
         return block(Id)
     }
     function table blockReset(Id:string){
-        return BlockTables:blockReset(Id)
+        return blockRoot():blockReset(Id)
     }
     
     function table:blockResetAll(){
         This["child_blocks", table]:clear()
     }
     function blockResetAll(){
-        BlockTables:blockResetAll()
+        blockRoot():blockResetAll()
     }
 }
 
