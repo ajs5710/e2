@@ -48,9 +48,14 @@
 
 if (first()){
     BlockTables = table()
+    BlockTables["child_blocks", table] = table()
     
-    function table blockTable(Id:string){
-        return BlockTables[Id, table]
+    function table blockRoot(){
+        return BlockTables
+    }
+    
+    function table table:blockTable(Id:string){
+        return This[Id, table]
     }
     
     function number table:blockNotDone(){
@@ -61,7 +66,7 @@ if (first()){
         This["done", number] = N
     }
     
-    #inits and records the iteration of the block #expected to be called exactly once per block execution
+#[    #inits and records the iteration of the block #expected to be called exactly once per block execution
     function table block(Id:string){
         if (BlockTables:exists(Id)){
             local BlockTable = blockTable(Id)
@@ -75,10 +80,34 @@ if (first()){
             BlockTable["done", number] = 0
             BlockTable["values", table] = table()
             BlockTable["exec_number", number] = 0
+            BlockTable["child_blocks", table] = table()
             BlockTables[Id, table] = BlockTable
             
             return BlockTable
         }
+    }]#
+    function table table:block(Id:string){
+        Blocks = This["child_blocks", table]
+        if (Blocks:exists(Id)){
+            local BlockTable = Blocks:blockTable(Id)
+            
+            if (BlockTable:blockNotDone()){
+                BlockTable["exec_number", number] = BlockTable["exec_number", number] + 1
+            }
+            return BlockTable
+        }else{
+            local BlockTable = table()
+            BlockTable["done", number] = 0
+            BlockTable["values", table] = table()
+            BlockTable["exec_number", number] = 0
+            BlockTable["child_blocks", table] = table()
+            Blocks[Id, table] = BlockTable
+            
+            return BlockTable
+        }
+    }
+    function table block(Id:string){
+        return BlockTables:block(Id)
     }
     
     function table table:blockValues(){
@@ -106,14 +135,19 @@ if (first()){
         return This["done", number]
     }
     
-    
-    function table blockReset(Id:string){
-        BlockTables:remove(Id)
+    function table table:blockReset(Id:string){
+        This["child_blocks", table]:remove(Id)
         return block(Id)
     }
+    function table blockReset(Id:string){
+        return BlockTables:blockReset(Id)
+    }
     
+    function table:blockResetAll(){
+        This["child_blocks", table]:clear()
+    }
     function blockResetAll(){
-        BlockTables:clear()
+        BlockTables:blockResetAll()
     }
 }
 
