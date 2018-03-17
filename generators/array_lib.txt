@@ -1,25 +1,35 @@
 @name 
 @inputs 
 @outputs 
-@persist Chip:table
+@persist 
 @trigger 
+
+interval(100)
 
 if (first()){
     #include "github/lib/bootstrap_builder"
     #include "github/lib/compares"
     #include "github/lib/blocks"
-            
-    Chip = bsInitChip()
-    Chip:bsSetName("array_lib")
+}
+
+Chip = bsInitChip("array_lib")
+if (Chip:blockPerfBreak()){
+    exit()
+}
+
+if (first()){
     Chip:bsAddInclude("github/lib/compares")
     Chip:bsAddInclude("github/lib/blocks")
 }
 
-Chip:bsUseSections()
-
-if (Chip:bsDefSection("Example Usage")){
-    Chip:bsAddLine("#[")
-    Chip:bsAddLines(array(
+Section = Chip:bsDefSection("Example Usage")
+if (Section:blockNotDone()){
+    if (Section:blockPerfBreak()){
+        exit()
+    }
+    
+    Section:bsAddLine("#[")
+    Section:bsAddLines(array(
         "### sortBy",
         "Result = players():sortEntitysByString(\"sort_players\", \"name\", 0)",
         "if (!Result:exists(\"return\")){",
@@ -28,7 +38,7 @@ if (Chip:bsDefSection("Example Usage")){
         "Return = Result[\"return\", array]",
         ""
     ))
-    Chip:bsAddLines(array(
+    Section:bsAddLines(array(
         "### sample",
         "Result = players():sampleEntity(\"sample_player\")",
         "if (!Result:exists(\"return\")){",
@@ -37,7 +47,7 @@ if (Chip:bsDefSection("Example Usage")){
         "Return = Result[\"return\", entity]",
         ""
     ))
-    Chip:bsAddLines(array(
+    Section:bsAddLines(array(
         "### map",
         "Result = players():mapEntitysToString(\"map_players\", \"name\")",
         "if (!Result:exists(\"return\")){",
@@ -46,7 +56,7 @@ if (Chip:bsDefSection("Example Usage")){
         "Return = Result[\"return\", array]",
         ""
     ))
-    Chip:bsAddLines(array(
+    Section:bsAddLines(array(
         "### indexBy",
         "Result = players():indexEntitysByString(\"players_by_name\", \"name\")",
         "if (!Result:exists(\"return\")){",
@@ -55,16 +65,34 @@ if (Chip:bsDefSection("Example Usage")){
         "Return = Result[\"return\", table]",
         ""
     ))
-    Chip:bsAddLine("]#")
+    Section:bsAddLine("]#")
+    
+    if (Section:blockLast()){
+        Chip:bsAddLines(Section:bsGetLines())
+    }
 }
 
+
 #sort_by
-foreach(I, ComparableType:string = array("number", "string")){
-    foreach(J, ArrayType:string = array("number", "string", "vector", "entity", "angle")){
-        if (Chip:bsDefSection("sort" + ArrayType:capitalize() + "By" + ComparableType:capitalize())){
-            SectionLines = array()
+Section = Chip:bsDefSection("sort_by")
+if (Section:blockNotDone()){
+    if (Section:blockFirst()){
+        Section:bsAddLine("if (first()){")
+    }
+    if (Section:blockPerfBreak()){
+        exit()
+    }
+    
+    LoopCompareTypes = Section:blockLoop(array("string", "number"))
+    while (LoopCompareTypes:blockNotDone()){
+        ComparableType = LoopCompareTypes:blockLoopNextString()
+        
+        LoopArrayTypes = LoopCompareTypes:blockLoop(array("number", "string", "vector", "entity", "angle"), ComparableType)
+        while (LoopArrayTypes:blockNotDone()){
+            ArrayType = LoopArrayTypes:blockLoopNextString()
+            
             FunctionName = "sort" + ArrayType:capitalize() + "sBy" + ComparableType:capitalize()
-            SectionLines = SectionLines:add(array(
+            Section:bsAddLines(array(
                 "",
                 "function table:" + FunctionName + "(Func:string, Desc:number){",
                 tab() + "local Vars = This:blockValues()",
@@ -120,12 +148,15 @@ foreach(I, ComparableType:string = array("number", "string")){
                 "function table array:" + FunctionName + "(BlockName:string, Func:string){",
                 tab() + "return This:" + FunctionName + "(BlockName, Func, 0)",
                 "}"
-            ))
-            Chip:bsAddLinesFirst(SectionLines)
+            ):indent())
         }
     }
+    if (Section:blockLast()){
+        Chip:bsAddLines(Section:bsGetLines())
+        Chip:bsAddLine("}")
+    }
 }
-
+#[
 #sample
 if (Chip:bsDefSection("sample<type>")){
     foreach(J, ArrayType:string = array("number", "string", "vector", "entity", "angle")){
@@ -150,6 +181,7 @@ if (Chip:bsDefSection("sample<type>")){
     Chip:bsAddLinesFirst(SectionLines)
 }
 
+#[
 #map
 foreach(J, ArrayType:string = array("number", "string", "vector", "entity", "angle")){
     if (Chip:bsDefSection("map" + ArrayType:capitalize() + "sTo<type>")){
@@ -238,6 +270,7 @@ foreach(I, IndexableType:string = array("number", "string")){
         }
     }
 }
+]#
 
 Chip:bootstrap_to_file()
 Chip:bootstrap()

@@ -71,26 +71,10 @@ if (first()){
         This["done", number] = N
     }
     
-#[    #inits and records the iteration of the block #expected to be called exactly once per block execution
-    function table block(Id:string){
-        if (BlockTables:exists(Id)){
-            local BlockTable = blockTable(Id)
-            
-            if (BlockTable:blockNotDone()){
-                BlockTable["exec_number", number] = BlockTable["exec_number", number] + 1
-            }
-            return BlockTable
-        }else{
-            local BlockTable = table()
-            BlockTable["done", number] = 0
-            BlockTable["values", table] = table()
-            BlockTable["exec_number", number] = 0
-            BlockTable["child_blocks", table] = table()
-            BlockTables[Id, table] = BlockTable
-            
-            return BlockTable
-        }
-    }]#
+    function number table:workNotDone(){
+        return !This["done", number]
+    }
+    
     
     function table table:block(Id:string){
         Blocks = This["child_blocks", table]
@@ -104,6 +88,12 @@ if (first()){
                     #delaying our reaction like this also delays our parent from being done by one execution this is sometimes neccessary for the next child block to be declared 
                 BlockTable["notified_parent", number] = 1
                 This["completed_children", number] = This["completed_children", number] + 1
+                if (BlockTable:exists("on_notify")){
+                    local OnNotify = BlockTable["on_notify", array]
+                    foreach(I, Func:string = OnNotify){
+                        Func(BlockTable, This)
+                    }
+                }
             }
             return BlockTable
         }else{
@@ -113,6 +103,7 @@ if (first()){
             BlockTable["exec_number", number] = 0
             BlockTable["child_blocks", table] = table()
             BlockTable["completed_children", number] = 0
+            BlockTable["on_notify", array] = array()
             Blocks[Id, table] = BlockTable
             
             return BlockTable
@@ -161,6 +152,92 @@ if (first()){
     function blockResetAll(){
         blockRoot():blockResetAll()
     }
+    
+    function table:blockOnNotify(Func:string){
+        This["on_notify", array]:pushString(Func)
+    }
 }
 
+#block loops #do not call blockPerfBreak() on a block that is a loop
+    #additionally block loops always call exit if perf should break
+if (first()){
+    function table table:blockLoop(Values:array, Name:string){
+        local Block = This:block("loop(array)" + Name)
+        if (Block:blockNotDone()){
+            local Vars = Block:blockValues()
+            if (Block:blockFirst()){
+                Vars["i", number] = 1
+                Vars["arr", array] = Values
+                Vars["iterable_type", string] = "array"
+            }
+        }
+        return Block
+    }
+    function table table:blockLoop(Values:array){
+        return This:blockLoop(Values, "")
+    }
+    function table blockLoop(Values:array){
+        return blockRoot():blockLoop(Values, "")
+    }
+    
+    function table table:blockLoop(Values:table, Name:string){
+        local Block = This:block("loop(table)" + Name)
+        if (Block:blockNotDone()){
+            local Vars = Block:blockValues()
+            if (Block:blockFirst()){
+                Vars["i", number] = 1
+                Vars["arr", table] = Values
+                Vars["iterable_type", string] = "table"
+            }
+        }
+        return Block
+    }
+    function table table:blockLoop(Values:table){
+        return This:blockLoop(Values, "")
+    }
+    function table blockLoop(Values:table){
+        return blockRoot():blockLoop(Values, "")
+    }
+    
+    function table table:blockForLoopValue(Type:string){
+        I = This:blockValues()["i", number]
+        local Block = This:block("value" + I)
+        if (Block:blockNotDone()){
+            local Vars = Block:blockValues()
+            if (Block:blockFirst()){
+                switch(This:blockValues()["iterable_type", string]){
+                    case "array", switch(Type){
+                        case "string", Vars["value", string] = This:blockValues()["arr", array][This:blockValues()["i", number], string], break
+                        case "number", Vars["value", number] = This:blockValues()["arr", array][This:blockValues()["i", number], number], break
+                    }, break
+                    case "table", switch(Type){
+                        case "string", Vars["value", string] = This:blockValues()["arr", table][This:blockValues()["i", number], string], break
+                        case "number", Vars["value", number] = This:blockValues()["arr", table][This:blockValues()["i", number], number], break
+                        case "table", Vars["value", table] = This:blockValues()["arr", table][This:blockValues()["i", number], table], break
+                    }, break
+                }
+                Block:blockOnNotify("blockIncrementI")
+            }
+        }
+        return Block
+    }
+    
+    function table:blockIncrementI(Parent:table){
+        local Vars = Parent:blockValues()
+        Vars["i", number] = Vars["i", number] + 1
+        
+        if (Vars["iterable_type", string] == "array"){        
+            if (Vars["i", number] > Vars["arr", array]:count()){
+                Vars["i", number] = Vars["arr", array]:count()
+                Parent:blockDone(1)
+            }
+        }elseif(Vars["iterable_type", string] == "table"){
+            if (Vars["i", number] > Vars["arr", table]:count()){
+                Vars["i", number] = Vars["arr", table]:count()
+                Parent:blockDone(1)
+            }
+        }
+    }
+    
+}
 

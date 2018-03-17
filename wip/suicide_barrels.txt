@@ -20,7 +20,7 @@ if (first()){
     RangerHeight = 150 #height at which the rangers to place barrels start
     HoloI = 0
     
-    UseWalls = 0
+    UseWalls = 1
     Debug = 0
     
     #returns the index of the created holo

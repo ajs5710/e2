@@ -8,68 +8,27 @@
 if (first()){
     
     #include "github/lib/strings"
+    #include "github/lib/blocks"
     
-    #using bsUseSections will limit the speed at which a bootstrap script can run
-        #it is literally the same as using interval() except that it keeps track of what section should be run
-        
-        #section run is the section that will run this execution of the calling chip
-        #section number is the current section that we are on
-            #after a section is run we increase the SectionRun value 
-        
-        function number table:bsDefSection(S:string, HeaderW:number){
-            This["section_number", number] = This["section_number", number] + 1
-            if (This["section_run", number] == This["section_number", number]){
-                This["lines", array]:pushString("")
-                This["lines", array]:pushString("")
-                
-                if (S != ""){
-                    local HashLength = (HeaderW/2) - (S:length()/2)
-                    This["lines", array]:pushString("#":repeat(floor(HashLength)) + S + "#":repeat(ceil(HashLength)))
-                }
-                
-                return 1
-            }else{
-                return 0
-            }
+    function table table:bsInitChip(ChipName:string){
+        local Chip = This:block(ChipName)
+        if (Chip:blockFirst()){
+            Chip["lines", array] = array("", "")
+            Chip["name", string] = ChipName
+            Chip["inputs", array] = array()
+            Chip["outputs", array] = array()
+            Chip["persist", array] = array()
+            Chip["includes", table] = table()
         }
-        function number table:bsDefSection(S:string){
-            return This:bsDefSection(S, 100)
-        }
-        function number table:bsDefSection(){
-            return This:bsDefSection("", 0)
-        }
-        
-        function table:bsUseSections(N:number){
-            interval(N)
-            This["section_number", number] = 0
-            This["section_run", number] = This["section_run", number] + 1
-        }
-        
-        function table:bsUseSections(){
-            This:bsUseSections(200) #this is 200ms because that is filewrite cooldown
-        }
-    #end bsDefSection Logic
-
-    function table bsInitChip(){
-        local Chip = table()
-        
-        Chip["lines", array] = array("", "")
-        Chip["name", string] = ""
-        Chip["inputs", array] = array()
-        Chip["outputs", array] = array()
-        Chip["persist", array] = array()
-        Chip["includes", table] = table()
-        
         return Chip
+    }
+    function table bsInitChip(ChipName:string){
+        return blockRoot():bsInitChip(ChipName)
     }
     
     #the bootstrapping chip must include any files which are going to be included
     function table:bsAddInclude(S:string){
         This["includes", table][S, string] = ""
-    }
-
-    function table:bsSetName(N:string){
-        This["name", string] = N
     }
     
     function table:bsAddInput(V:string, T:string){
@@ -116,6 +75,34 @@ if (first()){
         }
     }
     
+    
+    function array table:bsGetLines(){
+        return This["lines", array]
+    }
+
+    
+    function table table:bsDefSection(S:string, HeaderW:number){
+        Section = This:bsInitChip(S)
+        if (Section:blockNotDone()){
+            if (Section:blockFirst()){
+                Section["lines", array]:pushString("")
+                Section["lines", array]:pushString("")
+                
+                if (HeaderW){
+                    local HashLength = (HeaderW/2) - (S:length()/2)
+                    Section["lines", array]:pushString("#":repeat(floor(HashLength)) + S + "#":repeat(ceil(HashLength)))
+                }
+            }
+        }
+        return Section
+    }
+    function table table:bsDefSection(S:string){
+        return This:bsDefSection(S, 100)
+    }
+
+
+
+    
     function string table:bootstrap_build_code(){
         local Headers = array(
             "@name " + This["name", string],
@@ -139,10 +126,8 @@ if (first()){
     }
     
     function table:bootstrap_to_file(FileName:string, FilePath:string){
-        if (This["section_number", number] > 0){
-            if (This["section_run", number] <= This["section_number", number]){
-                return
-            }
+        if (This:blockNotDone()){
+            return
         }
         
         local FileString = FilePath + "/" + FileName
@@ -160,10 +145,8 @@ if (first()){
     }
     
     function table:bootstrap(){
-        if (This["section_number", number] > 0){
-            if (This["section_run", number] <= This["section_number", number]){
-                return
-            }
+        if (This:blockNotDone()){
+            return
         }
         
         This:bootstrap(entity())
