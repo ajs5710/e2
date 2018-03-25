@@ -158,8 +158,7 @@ if (first()){
     }
 }
 
-#block loops #do not call blockPerfBreak() on a block that is a loop
-    #additionally block loops always call exit if perf should break
+#block loops #do not call blockPerfBreak() on a block that is a loop its work becomes done based solely on work being done for all of its children
 if (first()){
     function table table:blockLoop(Values:array, Name:string){
         local Block = This:block("loop(array)" + Name)
@@ -238,6 +237,18 @@ if (first()){
             }
         }
     }
+    
+    #[
+    #shortcuts the rest of the loop by replacing the arr value of the block with an empty
+    function table:blockLoopQuit(){
+        local Vars = This:blockValues()
+        if (Vars["iterable_type", string] == "array"){        
+            Vars["arr", array] = array()
+        }elseif(Vars["iterable_type", string] == "table"){
+            Vars["arr", table] = table()
+        }
+    }
+    ]#
     
 }
 

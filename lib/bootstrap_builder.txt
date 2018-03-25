@@ -81,10 +81,12 @@ if (first()){
     }
 
     
-    function table table:bsDefSection(S:string, HeaderW:number){
+    function table table:bsDefSection(S:string, HeaderW:number, First:number){
         Section = This:bsInitChip(S)
         if (Section:blockNotDone()){
             if (Section:blockFirst()){
+                Section:blockOnNotify("bs_AddSectionToParent")
+                
                 Section["lines", array]:pushString("")
                 Section["lines", array]:pushString("")
                 
@@ -92,12 +94,25 @@ if (first()){
                     local HashLength = (HeaderW/2) - (S:length()/2)
                     Section["lines", array]:pushString("#":repeat(floor(HashLength)) + S + "#":repeat(ceil(HashLength)))
                 }
+                if (First){
+                    Section["lines", array]:pushString("if (first()){")
+                    Section:blockOnNotify("bs_AddCloseCurly")
+                }
+            }
+            
+            if (Section:blockLast()){
+                if (First){
+                    #Section["lines", array]:pushString("}")
+                }
             }
         }
         return Section
     }
     function table table:bsDefSection(S:string){
-        return This:bsDefSection(S, 100)
+        return This:bsDefSection(S, 100, 0)
+    }
+    function table table:bsDefSectionFirst(S:string){
+        return This:bsDefSection(S, 100, 1)
     }
 
 
@@ -150,6 +165,16 @@ if (first()){
         }
         
         This:bootstrap(entity())
+    }
+}
+
+if (first()){
+    function table:bs_AddSectionToParent(Parent:table){
+        Parent:bsAddLines(This:bsGetLines())
+    }
+    
+    function table:bs_AddCloseCurly(Parent:table){
+        Parent:bsAddLine("}")
     }
 }
 
