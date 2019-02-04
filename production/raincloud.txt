@@ -1,10 +1,11 @@
 @name 
 @inputs 
-@outputs Status:string Test:vector
+@outputs Status:string Test:vector Lightning:table TargetPos:vector
 @persist DripNoises:array Status:string Time
 @persist NumRaindrops RainFallSpeed RainSplashDuration RainColor:vector RainAlpha RainWidth RainHeight RainTailToBodyRatio CloudHeight
 @persist Cloud CloudEntity:entity UnusedDrops:array FallingDrops:array PuddleEnt:entity PuddleDropGrowthFactor PuddleDropStartSize PuddleDepth
 @persist HoloI LastI DepressedUser:entity
+@persist LightningZigDistance LightningZigWidth Target:entity TargetPos:vector Lightning:table
 @trigger 
 
 interval(100)
@@ -23,6 +24,13 @@ if (first()){
     
     CloudHeight = 150
     
+    PuddleDropGrowthFactor = 10 #each drip is divided by this #bigger numbers mean slower growth
+    PuddleDropStartSize = 40 #number of drops that a new puddle is created with
+    PuddleDepth = 5
+    
+    LightningZigDistance = 100
+    LightningZigWidth = 25
+    
     #cloud will get created on first so need to persist
     CloudModel = "models/props_forest/cliff_wall_07.mdl" #I like this for model but its bounding box is all screwed up
     #CloudModel = "models/hunter/blocks/cube8x8x025.mdl"
@@ -31,9 +39,8 @@ if (first()){
     CloudColor = vec(25, 25, 25)
     CloudAlpha = 254
     
-    PuddleDropGrowthFactor = 10 #each drip is divided by this #bigger numbers mean slower growth
-    PuddleDropStartSize = 40 #number of drops that a new puddle is created with
-    PuddleDepth = 5
+    beamMaterial("models/alyx/emptool_glow")
+    beamColor(vec(230, 230, 255))
 }
 
 if (first()){
@@ -133,6 +140,12 @@ if (first()){
         }
         return -1
     }
+    function number array:lastNumber(){
+        return This[This:count(), number]
+    }
+    function number table:lastIndex(){
+        return This:keys():lastNumber()
+    }
     
     function entity acquireRaindrop(){
         if (UnusedDrops:none()){
@@ -149,7 +162,7 @@ if (first()){
     }
     function void entity:splashRaindrop(){
         Index = holoIndex(This)
-        soundStop(Index)
+        #soundStop(Index)
         This:soundPlay(Index, 1, DripNoises:sample())
         This:setAlpha(RainAlpha)
         This["hit", number] = 1
@@ -205,6 +218,8 @@ if (Status == "init"){
     Cloud = CloudParent
     CloudEntity = holoEntity(CloudParent)
     rangerFilter(CloudEntity)
+    
+    CloudEntity:streamStart(1, "http://k007.kiwi6.com/hotlink/5jmzzm9qjm/Luis_Fonsi_-_Despacito_ft._Daddy_Yankee.mp3")
    
     Status = "setup rain"
 }elseif (Status == "setup rain"){
@@ -285,16 +300,59 @@ if (Status == "init"){
 
 }
 
-
-
 #holoPos(Cloud, entity():pos() + vec(0,0,CloudHeight))
 holoPos(Cloud, DepressedUser:pos() + vec(0,0,CloudHeight))
 
-Test = CloudEntity:boxSize()
 if (DepressedUser:keyUse()){
-    if (DepressedUser:aimEntity():isPlayer()){
-        DepressedUser = DepressedUser:aimEntity()
+    if (DepressedUser:aimEntity():isValid()){
+        Target = DepressedUser:aimEntity()
+    }else{
+        TargetPos = DepressedUser:aimPos()
     }
+}
+
+if (Target:isValid()){
+    if (Target:isPlayer()){
+        TargetPos = Target:shootPos()
+    }else{
+        TargetPos = Target:boxCenterW()
+    }
+}
+
+if (TargetPos:length() > 0){
+    if (Lightning:count() == 0){
+        Start = DepressedUser:shootPos() - vec(0,0,5)
+        Lightning:pushVector(Start)
+        beamPoint(1, Start)
+    }
+    
+    LightningLastIndex = Lightning:lastIndex()
+    StartPos = Lightning[1, vector]
+    CurrentPos = Lightning[LightningLastIndex, vector]
+    
+    Test = CurrentPos
+    
+    LeftToTravel = TargetPos - CurrentPos
+    if (LeftToTravel:length() < LightningZigDistance){
+        if (Target:isPlayer()){
+            DepressedUser = Target
+            concmd("ulx ragdoll " + Target:name())
+        }
+        beamPoint(LightningLastIndex + 1, TargetPos)
+        Lightning:clear()
+        Target = noentity()
+        TargetPos = vec(0,0,0)
+    }else{
+        Right = (TargetPos - StartPos):normalized():cross(vec(0,0,1))
+        if (mod(LightningLastIndex, 2) == 0){
+            Right = -Right
+        }
+        Dest = CurrentPos + Right*LightningZigWidth + LeftToTravel:normalized()*LightningZigDistance
+        beamPoint(LightningLastIndex + 1, Dest)
+        Lightning:pushVector(Dest)
+    }
+}else{
+    beamClear()
 }
 
 
